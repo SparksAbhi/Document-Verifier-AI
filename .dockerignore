@@ -1,0 +1,11 @@
+.venv/
+.git/
+.qwen/
+.claude/
+__pycache__/
+*.pyc
+backend/dbconfig.py
+env.txt
+screenings.db
+backend/uploads/*
+!backend/uploads/.gitkeep

@@ -1,3 +1,13 @@
+---
+title: SENTRY — AI Document Screening
+emoji: 🛂
+colorFrom: navy
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: true
+---
+
 # SENTRY — AI-Based Fake Identity & Document Screening System
 
 **Smart India Hackathon 2026** · Border checkpoint document verification in seconds.
