@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+backend/uploads/*
+!backend/uploads/.gitkeep
+screenings.db
+backend/dbconfig.py
+env.txt
+.qwen/
+.claude/

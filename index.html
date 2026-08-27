@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENTRY — Document Screening Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================= LOGIN / AUTH FLOW ================= -->
+<div id="view-login" class="active">
+  <div class="login-grid-glow"></div>
+
+  <button class="theme-fab" id="theme-fab" onclick="toggleTheme()" title="Toggle light / dark mode">
+    <span id="theme-fab-icon">🌙</span>
+  </button>
+  <button class="theme-fab" id="lang-fab" onclick="toggleLanguage()" title="भाषा बदलें / Change language" style="right:64px;font-family:var(--font-mono);font-size:11px;">
+    <span>हिं</span>
+  </button>
+
+  <!-- STEP 1 — ROLE SELECT -->
+  <div class="login-step active" id="step-role">
+    <div class="login-brand">
+      <div class="login-mark"></div>
+      <div class="login-title">SENTRY</div>
+      <div class="login-sub">CHECKPOINT SCREENING CONSOLE</div>
+    </div>
+    <div class="role-select-row">
+      <div class="role-card" onclick="selectRole('user')">
+        <div class="role-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+        </div>
+        <div class="role-title">Login as User</div>
+        <div class="role-sub">Passenger / traveler portal — submit documents &amp; queries</div>
+      </div>
+      <div class="role-card" onclick="selectRole('officer')">
+        <div class="role-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9.5 12l2 2 3.5-4"/></svg>
+        </div>
+        <div class="role-title">Login as Officer</div>
+        <div class="role-sub">Security officer console — screening, risk review &amp; verification</div>
+      </div>
+    </div>
+    <div class="login-foot">CHECKPOINT 04 · TERMINAL B · SESSION ENCRYPTED</div>
+  </div>
+
+  <!-- STEP 2A — USER AUTH -->
+  <div class="login-step" id="step-user-auth">
+    <div class="login-card">
+      <button class="back-link" onclick="showLoginStep('step-role')">← Back</button>
+      <div class="login-brand" style="margin-bottom:16px;">
+        <div class="login-mark small"></div>
+        <div class="login-title" style="font-size:16px;">USER ACCESS</div>
+      </div>
+
+      <div class="auth-tabs">
+        <div class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">Login</div>
+        <div class="auth-tab" data-tab="signup" onclick="switchAuthTab('signup')">Sign Up</div>
+        <div class="auth-tab" data-tab="forgot" onclick="switchAuthTab('forgot')">Forgot Password</div>
+      </div>
+
+      <div class="auth-form active" id="form-login">
+        <div class="field"><label>USER ID OR EMAIL</label><input type="text" id="ul-email" placeholder="jordan or jordan@example.com"></div>
+        <div class="field pw-field"><label>PASSWORD</label><input type="password" id="ul-password" placeholder="Your password"><button class="pw-toggle" id="pw-tgl-ul" onclick="togglePassword('pw-tgl-ul','ul-password')" title="Show password">👁</button></div>
+        <div class="auth-hint">Demo account — jordan / sentry-user-2026<br>New here? Use the Sign Up tab to create an account.</div>
+        <div class="auth-error" id="ul-error"></div>
+        <button class="btn btn-primary btn-block" onclick="userLogin()">Login &amp; Continue</button>
+      </div>
+
+      <div class="auth-form" id="form-signup">
+        <div class="field"><label>FULL NAME</label><input type="text" id="su-name" placeholder="Jordan Lee"></div>
+        <div class="field"><label>EMAIL</label><input type="text" id="su-email" placeholder="you@example.com"></div>
+        <div class="field"><label>CREATE USER ID</label><input type="text" id="su-username" placeholder="jordan_lee" spellcheck="false"></div>
+        <div class="field"><label>PASSPORT / ID NUMBER <span style="color:var(--text-faint)">(optional)</span></label><input type="text" id="su-passport" placeholder="C 40217755"></div>
+        <div class="field pw-field"><label>PASSWORD</label><input type="password" id="su-password" placeholder="Create a password (6+ characters)"><button class="pw-toggle" id="pw-tgl-su" onclick="togglePassword('pw-tgl-su','su-password')" title="Show password">👁</button></div>
+        <div class="field pw-field"><label>CONFIRM PASSWORD</label><input type="password" id="su-confirm" placeholder="Repeat your password"><button class="pw-toggle" id="pw-tgl-suc" onclick="togglePassword('pw-tgl-suc','su-confirm')" title="Show password">👁</button></div>
+        <div class="auth-error" id="su-error"></div>
+        <button class="btn btn-primary btn-block" onclick="signupUser()">Create Account &amp; Continue</button>
+      </div>
+
+      <div class="auth-form" id="form-forgot">
+        <div class="field"><label>EMAIL OR PASSPORT NO.</label><input type="text" placeholder="you@example.com"></div>
+        <div class="auth-hint">We'll send a secure reset link. For account safety, a face check is still required on your next login.</div>
+        <button class="btn btn-primary btn-block" onclick="switchAuthTab('login')">Send Reset Link</button>
+      </div>
+
+      <div class="login-foot">SESSION ENCRYPTED · FACE VERIFICATION REQUIRED AT EVERY LOGIN</div>
+    </div>
+  </div>
+
+  <!-- STEP 2B — OFFICER AUTH -->
+  <div class="login-step" id="step-officer-auth">
+    <div class="login-card">
+      <button class="back-link" onclick="showLoginStep('step-role')">← Back</button>
+      <div class="login-brand">
+        <div class="login-mark"></div>
+        <div class="login-title" style="font-size:16px;">OFFICER ACCESS</div>
+        <div class="login-sub">CHECKPOINT SCREENING CONSOLE</div>
+      </div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" data-tab="of-login" onclick="switchOfficerTab('of-login')">Existing Officer</div>
+        <div class="auth-tab" data-tab="of-signup" onclick="switchOfficerTab('of-signup')">New Officer</div>
+      </div>
+      <div class="auth-form active" id="form-of-login">
+        <div class="field">
+          <label>OFFICER ID OR EMAIL</label>
+          <input type="text" id="of-email" value="kessler" spellcheck="false">
+        </div>
+        <div class="field pw-field">
+          <label>ACCESS KEY</label>
+          <input type="password" id="of-password" placeholder="Access key">
+          <button class="pw-toggle" id="pw-tgl-of" onclick="togglePassword('pw-tgl-of','of-password')" title="Show password">👁</button>
+        </div>
+        <div class="auth-error" id="of-error"></div>
+        <div class="badge-scan">
+          <span>⌗</span> Demo — kessler / sentry-officer-2026
+        </div>
+        <button class="btn btn-primary btn-block" onclick="officerLogin()">Authenticate &amp; Enter</button>
+      </div>
+      <div class="auth-form" id="form-of-signup">
+        <div class="field"><label>FULL NAME</label><input type="text" id="ofsu-name" placeholder="A. Reyes"></div>
+        <div class="field"><label>EMAIL</label><input type="text" id="ofsu-email" placeholder="officer@checkpoint04.gov"></div>
+        <div class="field"><label>CREATE OFFICER ID</label><input type="text" id="ofsu-username" placeholder="reyes_o" spellcheck="false"></div>
+        <div class="field pw-field"><label>ACCESS KEY</label><input type="password" id="ofsu-password" placeholder="Create an access key (6+ characters)"><button class="pw-toggle" id="pw-tgl-ofsu" onclick="togglePassword('pw-tgl-ofsu','ofsu-password')" title="Show password">👁</button></div>
+        <div class="field pw-field"><label>CONFIRM ACCESS KEY</label><input type="password" id="ofsu-confirm" placeholder="Repeat your access key"><button class="pw-toggle" id="pw-tgl-ofsuc" onclick="togglePassword('pw-tgl-ofsuc','ofsu-confirm')" title="Show password">👁</button></div>
+        <div class="auth-error" id="ofsu-error"></div>
+        <button class="btn btn-primary btn-block" onclick="signupOfficer()">Register Officer &amp; Enter</button>
+      </div>
+      <div class="login-foot">CHECKPOINT 04 · TERMINAL B · SESSION ENCRYPTED</div>
+    </div>
+  </div>
+
+  <!-- STEP 3 — FACE LIVENESS / PAD CHECK (User accounts only) -->
+  <div class="login-step" id="step-liveness">
+    <div class="login-card wide">
+      <div class="eyebrow">Login security check</div>
+      <div class="login-title" style="font-size:16px;margin-bottom:2px;">Face Verification</div>
+      <div class="page-sub" style="margin-bottom:16px;">Every account login requires a live face check to help prevent unauthorized access.</div>
+
+      <div class="liveness-layout">
+        <div class="face-frame live" id="live-face-frame">
+          <video id="login-camera-video" autoplay playsinline muted style="display:none;"></video>
+          <svg id="login-camera-icon" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+          <div class="scan-sweep" id="login-scan-sweep" style="display:none;"></div>
+        </div>
+
+        <div class="check-list" id="liveness-checklist">
+          <div class="check-item" id="li-motion" data-label="Natural facial micro-movement"></div>
+          <div class="check-item" id="li-printed" data-label="Printed photograph presented to camera"></div>
+          <div class="check-item" id="li-replay" data-label="Screen replay / abnormal flicker"></div>
+          <div class="check-item" id="li-multiface" data-label="Multiple faces detected"></div>
+        </div>
+      </div>
+
+      <div class="liveness-verdict" id="liveness-verdict">Tap the button and allow camera access to begin the live face check.</div>
+      <button class="btn btn-primary btn-block" id="btn-start-login-liveness" onclick="startLoginLiveness()">Start live face check</button>
+      <button class="btn btn-primary btn-block btn-disabled" id="btn-continue-liveness" disabled onclick="continueAfterLiveness()">Continue to Portal</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app-shell" style="display:none;">
+  <!-- ================= SIDEBAR ================= -->
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div>
+        <div class="brand-text">SENTRY</div>
+        <div class="brand-sub">SCREENING CONSOLE</div>
+      </div>
+    </div>
+
+    <!-- Officer nav -->
+    <div id="nav-officer-group">
+      <div class="navgroup-label">Operations</div>
+      <div class="navitem active" data-view="dashboard" onclick="goTo('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </div>
+      <div class="navitem" data-view="upload" onclick="goTo('upload')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><rect x="3" y="16" width="18" height="5" rx="1.5"/></svg>
+        New Screening
+      </div>
+      <div class="navitem" data-view="processing" onclick="goTo('processing')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+        Processing
+      </div>
+      <div class="navitem" data-view="result" onclick="goTo('result')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+        Result
+      </div>
+      <div class="navitem" data-view="investigation" onclick="goTo('investigation')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="6"/><path d="M20 20l-5.5-5.5"/></svg>
+        Investigation
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="navitem" data-view="trash" onclick="goTo('trash')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2"/><path d="M6 6l1 14a1 1 0 001 1h8a1 1 0 001-1l1-14"/></svg>
+        Trash
+      </div>
+      <div class="navgroup-label">System</div>
+      <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>Audit Log</div>
+      <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L14 3h-4l-.5 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 005 12"/></svg>Settings</div>
+    </div>
+
+    <!-- User nav -->
+    <div id="nav-user-group" style="display:none;">
+      <div class="navgroup-label">My Account</div>
+      <div class="navitem active" data-view="user-portal" onclick="goTo('user-portal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><rect x="3" y="16" width="18" height="5" rx="1.5"/></svg>
+        Submit Query
+      </div>
+      <div class="navitem" onclick="goTo('user-portal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg>
+        My Queries
+      </div>
+      <div class="navgroup-label">System</div>
+      <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>Profile</div>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="theme-switch" onclick="toggleTheme()" id="theme-switch-sidebar">
+        <span id="theme-switch-icon">🌙</span>
+        <span id="theme-switch-label">Dark Mode</span>
+      </div>
+      <button class="theme-switch" id="lang-toggle" onclick="toggleLanguage()" style="width:100%;justify-content:center;font-family:var(--font-mono);">EN / हिंदी</button>
+      <div class="officer-chip officer-chip-clickable" id="identity-chip-officer" onclick="goTo('profile')" title="Edit profile">
+        <div class="officer-avatar avatar-clickable" id="officer-avatar" onclick="event.stopPropagation(); changeProfilePicture()" title="Change profile picture">RK</div>
+        <div>
+          <div class="officer-name" id="officer-name">R. Kessler</div>
+          <div class="officer-role">Security Officer</div>
+        </div>
+        <div class="status-dot"></div>
+      </div>
+      <div class="officer-chip officer-chip-clickable" id="identity-chip-user" style="display:none;" onclick="goTo('profile')" title="Edit profile">
+        <div class="officer-avatar avatar-clickable" style="background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan);" id="user-avatar" onclick="event.stopPropagation(); changeProfilePicture()" title="Change profile picture">JL</div>
+        <div>
+          <div class="officer-name" id="user-name">Jordan Lee</div>
+          <div class="officer-role">Verified User</div>
+        </div>
+        <div class="status-dot"></div>
+      </div>
+      <input type="file" id="profile-pic-file" accept="image/*" hidden onchange="handleProfilePictureSelect(this)">
+      <button class="btn btn-ghost btn-block" style="margin-top:8px;" onclick="logout()">Log out</button>
+    </div>
+  </div>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <span class="topbar-title" id="topbar-title">Dashboard</span>
+        <span class="breadcrumb" id="topbar-crumb"> / overview</span>
+      </div>
+      <div class="topbar-right">
+        <span class="checkpoint-pill">● CHECKPOINT 04 ONLINE</span>
+        <span class="clock" id="clock">08:41:02</span>
+      </div>
+    </div>
+
+    <!-- ===== DASHBOARD (Officer) ===== -->
+    <div class="view active" id="view-dashboard">
+      <h1 class="page-title">Good morning, Officer Kessler</h1>
+      <div class="page-sub">Checkpoint 04 · Terminal B — here's what's moving through the lane today.</div>
+
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-accent"></div><div class="stat-num" id="stat-total">—</div><div class="stat-label">Documents screened today</div></div>
+        <div class="stat-card"><div class="stat-accent"></div><div class="stat-num" id="stat-low">—</div><div class="stat-label">Cleared — low risk</div></div>
+        <div class="stat-card"><div class="stat-accent"></div><div class="stat-num" id="stat-med">—</div><div class="stat-label">Flagged for review</div></div>
+        <div class="stat-card"><div class="stat-accent"></div><div class="stat-num" id="stat-high">—</div><div class="stat-label">High-risk holds</div></div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div class="panel-title">Recent screenings <span style="font-weight:400;color:var(--text-faint);font-size:11px;">live feed</span></div>
+          <table>
+            <thead>
+              <tr><th>Document</th><th>Traveler</th><th>Type</th><th>Risk</th><th>Time</th><th></th></tr>
+            </thead>
+            <tbody id="dash-feed"></tbody>
+          </table>
+          <div class="flag-sub" id="dash-feed-empty" style="display:none;padding:8px 0;">No screenings recorded yet — upload a document to begin.</div>
+        </div>
+
+        <div class="card">
+          <div class="panel-title">Escalation queue</div>
+          <div class="queue-list" id="dash-queue"></div>
+          <div class="flag-sub" id="dash-queue-empty" style="display:none;padding:8px 0;">Queue clear — no open high-risk cases.</div>
+          <button class="btn btn-ghost btn-block" style="margin-top:14px;" onclick="goTo('investigation')">Open investigation queue →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== UPLOAD (Officer) ===== -->
+    <div class="view" id="view-upload">
+      <h1 class="page-title">New screening</h1>
+      <div class="page-sub">Capture the presented document and a live face image to begin analysis.</div>
+
+      <div class="upload-grid">
+        <div class="dropzone" id="dz-doc" onclick="document.getElementById('doc-file').click()">
+          <div class="dropzone-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><rect x="3" y="16" width="18" height="5" rx="1.5"/></svg>
+          </div>
+          <div class="dropzone-title" id="dz-doc-title">Document upload</div>
+          <div class="dropzone-sub" id="dz-doc-sub">Drag a scan here, or click to browse<br>Passport · Visa · National ID · Licence · Permit</div>
+        </div>
+
+        <div class="dropzone" id="dz-face">
+          <div class="face-frame">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div class="dropzone-title" id="dz-face-title">Live face capture</div>
+          <div class="dropzone-sub" id="dz-face-sub">Optional — add the traveler's face photo to run<br>face verification &amp; liveness checks</div>
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <button class="btn btn-primary" style="padding:8px 14px;" onclick="event.stopPropagation(); openFaceCamera()">📷 Open camera</button>
+            <button class="btn" style="padding:8px 14px;" onclick="event.stopPropagation(); document.getElementById('face-file').click()">Upload photo</button>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="doc-file" accept="image/*" hidden onchange="handleFileSelect(this,'doc')">
+      <input type="file" id="face-file" accept="image/*" hidden onchange="handleFileSelect(this,'face')">
+
+      <div class="field-list">
+        <div class="field-list-title">FIELDS THE ENGINE WILL EXTRACT</div>
+        <div class="chip-row">
+          <span class="chip">Name</span><span class="chip">Document No.</span><span class="chip">Nationality</span>
+          <span class="chip">Date of birth</span><span class="chip">Date of expiry</span><span class="chip">Gender</span>
+          <span class="chip">MRZ checksum</span><span class="chip">Issuing authority</span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:24px;" onclick="startScreening()">Begin analysis →</button>
+      <div class="upload-hint" id="upload-hint"></div>
+    </div>
+
+    <!-- ===== PROCESSING (Officer) ===== -->
+    <div class="view" id="view-processing">
+      <h1 class="page-title proc-wait" id="proc-title"><span class="proc-spinner"></span>Wait — your documents are processing…</h1>
+      <div class="page-sub" id="proc-sub">Passport · uploaded by Officer Kessler</div>
+
+      <div class="progress-shell">
+        <div class="progress-meta"><span id="progress-label">Initializing screening engine…</span><span id="progress-pct">0%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+
+      <div class="proc-grid">
+        <div class="card pipeline-wrap">
+          <div class="panel-title">Analysis pipeline</div>
+          <div class="pipeline" id="pipeline">
+            <div class="pstep done">
+              <div class="pstep-marker"></div>
+              <div class="pstep-body"><div class="pstep-label">DOCUMENT RECEIVED</div><div class="pstep-hint">Upload · optional live face capture</div></div>
+            </div>
+            <div class="pstep">
+              <div class="pstep-marker"></div>
+              <div class="pstep-body"><div class="pstep-label">OCR EXTRACTION</div><div class="pstep-hint">EasyOCR · MRZ parsing</div></div>
+            </div>
+            <div class="pstep">
+              <div class="pstep-marker"></div>
+              <div class="pstep-body"><div class="pstep-label">VALIDATION RULES</div><div class="pstep-hint">ICAO 9303 checksums · date logic</div></div>
+            </div>
+            <div class="pstep">
+              <div class="pstep-marker"></div>
+              <div class="pstep-body"><div class="pstep-label">TAMPERING FORENSICS</div><div class="pstep-hint">EXIF · error-level analysis · noise</div></div>
+            </div>
+            <div class="pstep" id="pstep-face">
+              <div class="pstep-marker"></div>
+              <div class="pstep-body"><div class="pstep-label">FACE VERIFICATION + PAD</div><div class="pstep-hint">Facenet match · liveness check</div></div>
+            </div>
+            <div class="pstep">
+              <div class="pstep-marker"></div>
+              <div class="pstep-body"><div class="pstep-label">RISK ENGINE</div><div class="pstep-hint">Weighted AI recommendation</div></div>
+            </div>
+            <div class="pstep">
+              <div class="pstep-marker"></div>
+              <div class="pstep-body"><div class="pstep-label">OFFICER FINAL VERIFICATION</div><div class="pstep-hint">Human decision — stays with you</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="proc-right">
+          <div class="card proc-log-wrap">
+            <div class="panel-title">Engine log</div>
+            <div class="proc-log" id="proc-log"></div>
+          </div>
+
+          <div class="secure-delete-banner" id="secure-delete-banner" style="display:none;">
+            <div class="shred-doc">
+              <span class="shred-line" style="top:9px;animation-delay:.10s"></span>
+              <span class="shred-line" style="top:21px;animation-delay:.24s"></span>
+              <span class="shred-line" style="top:33px;animation-delay:.38s"></span>
+              <span class="shred-line" style="top:45px;animation-delay:.52s"></span>
+              <span class="shred-line" style="top:57px;animation-delay:.66s"></span>
+            </div>
+            <div class="secure-delete-text">
+              <div class="sd-title"><span class="sd-check">✓</span> <span class="sd-cheers">Cheers! Your data is safely deleted</span></div>
+              <div class="sd-sub">The uploaded image was permanently erased from the server after analysis. Only your screening record remains — and you can delete that too.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="proc-actions">
+        <button class="btn btn-ghost" id="btn-back-upload" style="display:none;" onclick="goTo('upload')">← Back to upload</button>
+        <button class="btn btn-primary" id="btn-view-result" style="display:none;" onclick="goTo('result')">View result →</button>
+      </div>
+    </div>
+
+    <!-- ===== RESULT (Officer) ===== -->
+    <div class="view" id="view-result">
+      <h1 class="page-title" id="result-title">DOC-88229 — Result</h1>
+      <div class="page-sub" id="result-sub">Passport · P. Novak · screened 08:35:04 by Officer Kessler</div>
+
+      <div class="result-grid">
+        <div>
+          <div class="card">
+            <div class="panel-title">Document</div>
+            <div class="doc-preview" id="doc-preview">
+              <img id="doc-image" alt="Uploaded document" style="display:none">
+              <svg id="doc-preview-icon" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" stroke-width="1.3"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="10" r="2"/><path d="M4 19l4-4 3 3 5-6 4 5"/></svg>
+              <div id="doc-deleted-note" style="display:none;text-align:center;padding:10px 14px;">
+                <div style="font-size:20px;">🗑️</div>
+                <div style="font-size:11px;color:var(--text-faint);margin-top:4px;line-height:1.5;">Image securely deleted<br>after analysis — not stored</div>
+              </div>
+            </div>
+            <div class="extract-table">
+              <div class="extract-row"><span class="extract-label">NAME</span><span class="extract-val" id="fld-name">Pavel Novak</span></div>
+              <div class="extract-row"><span class="extract-label">PASSPORT NO.</span><span class="extract-val" id="fld-documentNo">C 40217755</span></div>
+              <div class="extract-row"><span class="extract-label">NATIONALITY</span><span class="extract-val" id="fld-nationality">Czech Republic</span></div>
+              <div class="extract-row"><span class="extract-label">DATE OF BIRTH</span><span class="extract-val" id="fld-dob">14 Mar 1989</span></div>
+              <div class="extract-row"><span class="extract-label">DATE OF EXPIRY</span><span class="extract-val" id="fld-expiry">02 Jun 2031</span></div>
+              <div class="extract-row"><span class="extract-label">GENDER</span><span class="extract-val" id="fld-gender">M</span></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="panel-title">Detection flags</div>
+            <div id="result-flags">
+              <div class="flag-item">
+                <div class="flag-dot"></div>
+                <div><div class="flag-title">Stamp forgery suspected</div><div class="flag-sub">Entry stamp ink density inconsistent with issuing authority reference set.</div></div>
+              </div>
+              <div class="flag-item warn">
+                <div class="flag-dot"></div>
+                <div><div class="flag-title">Font irregularity in MRZ line 2</div><div class="flag-sub">Character spacing deviates 2.1σ from OCR-B baseline.</div></div>
+              </div>
+            </div>
+            <div class="flag-sub" id="result-flags-empty" style="display:none;padding:6px 0;">No flags — all automated checks passed.</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card gauge-card">
+            <div class="eyebrow">AI risk recommendation</div>
+            <div class="gauge">
+              <svg width="160" height="160" viewBox="0 0 160 160">
+                <circle cx="80" cy="80" r="68" stroke="var(--line)" stroke-width="10" fill="none"/>
+                <circle cx="80" cy="80" r="68" stroke="var(--high)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="427" stroke-dashoffset="107" id="gauge-arc"/>
+              </svg>
+              <div class="gauge-label">
+                <div class="gauge-score" style="color:var(--high)" id="gauge-score">75</div>
+                <div class="gauge-tier" style="color:var(--high)" id="gauge-tier">HIGH RISK</div>
+              </div>
+            </div>
+            <div class="ai-disclaimer">This is an automated recommendation only. It does not make the final decision — an Officer must verify and confirm.</div>
+            <div class="match-row">
+              <div class="match-face"></div>
+              <div style="flex:1;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;"><span class="extract-label">FACE MATCH</span><span style="font-family:var(--font-mono)" id="face-match-pct">88%</span></div>
+                <div class="match-bar-track"><div class="match-bar-fill" style="width:88%" id="face-match-bar"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="panel-title">Risk reasons</div>
+            <ul class="reason-list" id="risk-reasons">
+              <li>Stamp forgery suspected</li>
+            </ul>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="panel-title">Officer final verification</div>
+            <div class="page-sub" style="margin-bottom:12px;">Select a decision, then confirm to record it as the final, officer-verified outcome.</div>
+            <div class="decision-row">
+              <button class="btn btn-ghost" onclick="selectDecision(this,'approve')">Approve</button>
+              <button class="btn" onclick="selectDecision(this,'escalate')">Escalate</button>
+              <button class="btn btn-danger" onclick="selectDecision(this,'deny')">Deny</button>
+            </div>
+            <button class="btn btn-primary btn-block btn-disabled" id="btn-confirm-decision" disabled style="margin-top:10px;" onclick="confirmDecision()">Confirm &amp; Finalize as Officer</button>
+            <div class="verify-banner" id="officer-verify-banner"></div>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="panel-title">Cross-validation</div>
+            <div class="extract-row"><span class="extract-label">WATCHLIST CHECK</span><span class="risk-chip risk-med">REVIEW</span></div>
+            <div class="extract-row"><span class="extract-label">VISA VALIDITY</span><span class="risk-chip risk-low">VALID</span></div>
+            <div class="extract-row"><span class="extract-label">PRIOR ENTRIES</span><span class="extract-val">3 on record</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== INVESTIGATION (Officer) ===== -->
+    <div class="view" id="view-investigation">
+      <h1 class="page-title" id="invest-title">Investigation</h1>
+      <div class="page-sub" id="invest-sub">Select a case from the escalation queue or dashboard feed.</div>
+
+      <div class="ai-disclaimer card-style" style="margin-top:16px;">AI risk scoring is advisory only. Every action taken on this case requires explicit Officer confirmation before it is recorded.</div>
+
+      <div class="invest-grid">
+        <div class="card">
+          <div class="panel-title">Case timeline</div>
+          <div class="timeline" id="invest-timeline"></div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="panel-title">Watchlist <span style="font-weight:400;color:var(--text-faint);font-size:11px;">blacklisted docs &amp; persons — checked on every screening</span></div>
+            <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+              <input type="text" id="wl-doc" placeholder="Document number (e.g. C40217755)" style="flex:1;min-width:140px;">
+              <input type="text" id="wl-name" placeholder="Person name (optional)" style="flex:1;min-width:120px;">
+              <input type="text" id="wl-reason" placeholder="Reason (optional)" style="flex:1;min-width:120px;">
+              <button class="btn btn-danger" style="padding:8px 14px;" onclick="addWatchlistEntry()">+ Add</button>
+            </div>
+            <div id="wl-entries" style="margin-top:12px;"></div>
+            <div class="flag-sub" id="wl-empty" style="display:none;padding:6px 0;">Watchlist is empty — add a document number or person to flag them in future screenings.</div>
+          </div>
+          <div class="card" style="margin-top:16px;">
+            <div class="panel-title">Related identities</div>
+            <div id="invest-related"></div>
+            <div class="flag-sub" id="invest-related-empty" style="display:none;padding:6px 0;">No related identity records for this holder.</div>
+          </div>
+          <div class="card" style="margin-top:16px;">
+            <div class="panel-title">Actions</div>
+            <button class="btn btn-block" style="margin-bottom:8px;">Request secondary document</button>
+            <button class="btn btn-block" style="margin-bottom:12px;">Notify supervisor</button>
+            <label class="confirm-check">
+              <input type="checkbox" id="officer-confirm-check" onchange="toggleDenyBtn()">
+              I am the verifying Officer and confirm this action
+            </label>
+            <button class="btn btn-danger btn-block btn-disabled" id="btn-deny-case" disabled>Deny entry &amp; close case</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PROFILE (both roles) ===== -->
+    <div class="view" id="view-profile">
+      <h1 class="page-title">My profile</h1>
+      <div class="page-sub">Update your account details. Your user ID is permanent.</div>
+
+      <div class="card" style="margin-top:20px;max-width:560px;">
+        <div class="panel-title">Account</div>
+        <div style="display:flex;gap:20px;align-items:center;margin:14px 0 20px;">
+          <div class="officer-avatar profile-page-avatar" id="profile-page-avatar" onclick="changeProfilePicture()" title="Change profile picture">?</div>
+          <div>
+            <div style="font-family:var(--font-display);font-weight:600;" id="profile-page-name">—</div>
+            <div class="flag-sub" id="profile-page-role">—</div>
+            <button class="btn btn-ghost" style="margin-top:8px;padding:6px 12px;font-size:11px;" onclick="changeProfilePicture()">Change picture</button>
+          </div>
+        </div>
+        <div class="field"><label>FULL NAME</label><input type="text" id="pf-name" placeholder="Your name"></div>
+        <div class="field"><label>EMAIL</label><input type="text" id="pf-email" placeholder="you@example.com"></div>
+        <div class="field"><label>USER ID <span style="color:var(--text-faint)">(permanent — cannot be changed)</span></label><input type="text" id="pf-username" disabled></div>
+        <div class="auth-error" id="pf-error"></div>
+        <button class="btn btn-primary" style="margin-top:14px;" onclick="saveProfile()">Save changes</button>
+        <div class="flag-sub" id="pf-saved" style="display:none;color:var(--low);margin-top:10px;">✓ Profile updated.</div>
+      </div>
+    </div>
+
+    <!-- ===== TRASH (Officer) ===== -->
+    <div class="view" id="view-trash">
+      <h1 class="page-title">Trash</h1>
+      <div class="page-sub">Deleted screening records — restore them if removed by accident, or delete permanently.</div>
+
+      <div class="card" style="margin-top:20px;">
+        <div class="panel-title">Deleted screenings</div>
+        <table>
+          <thead>
+            <tr><th>Document</th><th>Traveler</th><th>Risk</th><th>Deleted</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="trash-rows"></tbody>
+        </table>
+        <div class="flag-sub" id="trash-empty" style="display:none;padding:8px 0;">Trash is empty — nothing has been deleted.</div>
+      </div>
+    </div>
+
+    <!-- ===== USER PORTAL (User) ===== -->
+    <div class="view" id="view-user-portal">
+      <h1 class="page-title">Submit a query</h1>
+      <div class="page-sub">Upload your document, complete verification, then send it to a Security Officer for review.</div>
+
+      <div class="upload-grid" style="margin-top:22px;">
+        <div class="dropzone" id="uq-dz-doc" onclick="document.getElementById('uq-doc-file').click()">
+          <div class="dropzone-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><rect x="3" y="16" width="18" height="5" rx="1.5"/></svg>
+          </div>
+          <div class="dropzone-title" id="uq-dz-doc-title">Upload document</div>
+          <div class="dropzone-sub" id="uq-dz-doc-sub">Passport · Visa · National ID · Licence · Permit<br>Click to browse your files</div>
+        </div>
+        <div class="dropzone" id="uq-dz-face">
+          <div class="face-frame">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div class="dropzone-title" id="uq-dz-face-title">Live face capture</div>
+          <div class="dropzone-sub" id="uq-dz-face-sub">Optional — run the liveness check<br>and face verification on yourself</div>
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <button class="btn btn-primary" style="padding:8px 14px;" onclick="event.stopPropagation(); openFaceCamera('user')">📷 Open camera</button>
+            <button class="btn" style="padding:8px 14px;" onclick="event.stopPropagation(); document.getElementById('uq-face-file').click()">Upload photo</button>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="uq-doc-file" accept="image/*" hidden onchange="handleUserFileSelect(this,'doc')">
+      <input type="file" id="uq-face-file" accept="image/*" hidden onchange="handleUserFileSelect(this,'face')">
+
+      <div class="card" style="margin-top:20px;">
+        <div class="panel-title">Describe your query<span style="font-weight:400;color:var(--text-faint);font-size:11px;">the officer will read this</span></div>
+        <div class="note-box">
+          <textarea id="uq-query-text" placeholder="e.g. My visa shows the wrong entry date — can this be corrected?"></textarea>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="panel-title">Verification checks<span style="font-weight:400;color:var(--text-faint);font-size:11px;">runs the same AI as the officer console</span></div>
+        <div class="check-list" id="uq-checklist">
+          <div class="check-item qcheck" data-label="OCR extraction" id="uq-ocr"></div>
+          <div class="check-item qcheck" data-label="Document validation" id="uq-valid"></div>
+          <div class="check-item qcheck" data-label="Tampering detection" id="uq-tamper"></div>
+          <div class="check-item qcheck" data-label="Face verification" id="uq-face"></div>
+          <div class="check-item qcheck" data-label="Liveness / presentation-attack check" id="uq-pad"></div>
+        </div>
+        <button class="btn" style="margin-top:14px;" id="btn-run-uq-checks" onclick="runQueryChecks()">Run verification checks</button>
+      </div>
+
+      <div class="card" style="margin-top:16px;" id="uq-submit-panel">
+        <div class="panel-title">Send to Officer</div>
+        <div class="uq-helper" id="uq-helper">Upload a document and run the verification checks above before sending.</div>
+        <button class="btn btn-primary btn-disabled" id="btn-submit-query" disabled style="margin-top:10px;" onclick="submitQuery()">Submit to Officer for verification</button>
+      </div>
+
+      <div class="card verify-banner-card" id="uq-confirmation" style="display:none;margin-top:16px;">
+        <div class="flag-title" style="color:var(--low);" id="uq-confirmation-title">Query sent to a Security Officer</div>
+        <div class="flag-sub">All automated checks are advisory only. A human Officer will review your submission and make the final verification decision — AI does not decide on your behalf.</div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="panel-title">My queries</div>
+        <table>
+          <thead>
+            <tr><th>Query</th><th>Submitted</th><th>AI risk</th><th>Officer status</th></tr>
+          </thead>
+          <tbody id="uq-my-queries"></tbody>
+        </table>
+        <div class="flag-sub" id="uq-my-queries-empty" style="display:none;padding:6px 0;">No queries yet — submit your first one above.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== CAMERA CAPTURE MODAL (live face + liveness) ===== -->
+<div class="camera-modal" id="camera-modal" style="display:none;">
+  <div class="camera-card">
+    <div class="camera-head">
+      <div>
+        <div class="camera-title">Live face capture</div>
+        <div class="camera-sub">Presentation-attack checks run while the camera is open</div>
+      </div>
+      <button class="camera-close" onclick="closeFaceCamera()" title="Close">×</button>
+    </div>
+
+    <div class="camera-stage" id="camera-stage">
+      <video id="camera-video" autoplay playsinline muted></video>
+      <div class="camera-scan" id="camera-scan"></div>
+      <img id="camera-preview" alt="Captured face" style="display:none;">
+    </div>
+
+    <div class="camera-status" id="camera-status">Requesting camera permission…</div>
+    <div class="camera-checks" id="camera-checks"></div>
+
+    <div class="camera-actions">
+      <button class="btn btn-primary" id="btn-capture" style="display:none;" onclick="startLivenessCapture()">Start liveness check</button>
+      <button class="btn btn-primary" id="btn-use-capture" style="display:none;" onclick="useFaceCapture()">Use this capture</button>
+      <button class="btn" id="btn-retake" style="display:none;" onclick="resetFaceCamera()">Retake</button>
+      <button class="btn btn-ghost" onclick="closeFaceCamera()">Cancel</button>
+    </div>
+    <div class="camera-fallback">No camera available? <a href="#" onclick="event.stopPropagation(); document.getElementById('face-file').click(); return false;">Upload a face photo instead</a></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
