@@ -63,6 +63,23 @@ Sample documents live in `backend/samples/` — all synthetic specimens, no real
 4. Double-click **`start-sentry.bat`** → open http://127.0.0.1:8901
    (Ctrl+F5 on first load). First screening takes ~15-20s while AI models load.
 
+## Share the live site (free, via ngrok tunnel)
+
+The AI server needs real compute, so it runs on the team lead's machine and
+is shared through a permanent public link:
+
+1. Free account at [ngrok.com](https://dashboard.ngrok.com/signup), download
+   `ngrok.exe` into the project folder
+2. `ngrok config add-authtoken <YOUR_TOKEN>` (token shown in the dashboard)
+3. Claim your **free static domain** at dashboard.ngrok.com/domains
+   (e.g. `sparksabhi-sentry.ngrok-free.app`)
+4. Paste it into `share-online.bat` (the `NGROK_DOMAIN=` line)
+5. Double-click **`share-online.bat`** — it starts the server + tunnel and
+   prints your permanent link: `https://sparksabhi-sentry.ngrok-free.app`
+
+Teammates open that link whenever your laptop is on. First-time visitors
+click "Visit Site" once (ngrok's interstitial page).
+
 ## Project docs
 
 - `prd.md` — product requirements

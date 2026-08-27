@@ -42,6 +42,18 @@
 - **Demo accounts:** Officer `kessler` / `sentry-officer-2026` · User
   `jordan` / `sentry-user-2026`.
 - **Server state:** RUNNING on :8901 backed by Neon.
+- **GitHub:** repo live at https://github.com/SparksAbhi/sentry (pushed
+  2026-08-28, 44 files, secrets verified excluded). Teammate flow: clone →
+  copy backend/dbconfig.example.py → dbconfig.py with the Neon string →
+  setup.bat → start-sentry.bat.
+- **Hugging Face deployment (in progress):** Dockerfile (python:3.11-slim,
+  libgl1+libglib2.0-0 for OpenCV, port 7860, cp example→dbconfig.py),
+  .dockerignore, README HF front-matter (sdk: docker, app_port: 7860),
+  dbconfig.py + example now read DATABASE_URL env var first (fallback to the
+  hardcoded local string). Deployment commit 25fac95 NOT yet pushed.
+  HF Space steps for user: create Space (Docker SDK) → link GitHub repo →
+  add DATABASE_URL secret → wait ~20min build → public
+  sparksabhi-sentry.hf.space link. Cold start ~1-2min after idle.
 
 ### How to run the backend (verified working)
 ```
