@@ -519,6 +519,21 @@ async function sendChat() {
 	}
 }
 
+// ===== PDF REPORT DOWNLOAD =====
+
+function downloadReport() {
+	if (!currentResult || !currentResult.id) {
+		window.alert('Run a screening first, then download its report.');
+		return;
+	}
+	const link = document.createElement('a');
+	link.href = `/api/screenings/${encodeURIComponent(currentResult.id)}/report`;
+	link.download = '';
+	document.body.append(link);
+	link.click();
+	link.remove();
+}
+
 function togglePassword(buttonId, inputId) {
 	const input = document.getElementById(inputId);
 	const button = document.getElementById(buttonId);

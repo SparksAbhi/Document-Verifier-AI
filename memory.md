@@ -67,6 +67,20 @@
   auto-generated free static domain). Tunnel runs while laptop on; restart
   via share-online.bat. All 3 commits PUSHED to GitHub (origin/master at
   486e9a1 — teammates get README + sharing instructions on clone).
+- **SENTRY ASSIST chatbot (2026-08-28, commit c053ccc, NOT pushed):**
+  Floating 💬 chat bubble (bottom-right, every screen) + chat panel with
+  typing indicator. Backend: POST /api/chat (services/chatbot.py — stdlib
+  urllib, OpenAI-compatible format). Provider: **Google Gemini 3.5 Flash
+  Lite** via free aistudio.google.com API key (llmconfig.py, gitignored).
+  AgentRouter was tried first but REJECTS all non-agent clients ("unauthorized
+  client detected" — verified with curl/SDK fingerprints; their credits only
+  work from Claude Code/Qwen Code etc.). Groq signup blocked for the user's
+  region ("account must be part of an organisation"). Gemini key is new
+  AQ.Ab8... format (NOT AIza...) — works fine. Features: SENTRY-domain
+  system prompt, **context-aware** (injects current screening risk/reasons
+  via _chatScreeningContext when a Result is open), low-credit mode (last 6
+  messages only, 250 max tokens). Verified: general Q&A + case-specific
+  "why is this HIGH risk?" with correct 3-reason answer.
 
 ### How to run the backend (verified working)
 ```

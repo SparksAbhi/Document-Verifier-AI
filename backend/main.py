@@ -21,6 +21,7 @@ from services import auth as auth_service
 from services import chatbot
 from services import face as face_service
 from services import ocr, tampering, validation
+from services import report as report_service
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent
@@ -233,6 +234,25 @@ def list_queries(limit: int = 20, session: str | None = Cookie(default=None, ali
     """User portal: the logged-in account's submitted queries."""
     user = _require_user(session)
     return storage.list_queries(user["id"], limit=limit)
+
+
+@app.get("/api/screenings/{doc_id}/report")
+def get_screening_report(doc_id: str, session: str | None = Cookie(default=None, alias=SESSION_COOKIE)) -> Response:
+    """Generate and download the PDF report for a screening."""
+    user = _require_user(session)
+    screening = storage.get_screening(doc_id, owner_user_id=user["id"])
+    if screening is None:
+        raise HTTPException(status_code=404, detail=f"Screening {doc_id} not found.")
+    try:
+        pdf_bytes = report_service.generate_report(screening)
+    except Exception as exc:
+        print(f"[report] generation failed: {exc}")
+        raise HTTPException(status_code=500, detail="Report could not be generated.")
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="SENTRY_{doc_id}_report.pdf"'},
+    )
 
 
 @app.get("/api/screenings/{doc_id}")
