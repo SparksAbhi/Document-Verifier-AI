@@ -5,6 +5,7 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 screenings.db
 backend/dbconfig.py
+backend/llmconfig.py
 env.txt
 .qwen/
 .claude/

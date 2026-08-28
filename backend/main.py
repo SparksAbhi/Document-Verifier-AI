@@ -18,6 +18,7 @@ from pydantic import BaseModel
 import storage
 from risk import score as risk_score
 from services import auth as auth_service
+from services import chatbot
 from services import face as face_service
 from services import ocr, tampering, validation
 
@@ -318,6 +319,29 @@ def update_profile(request: ProfileUpdateRequest, session: str | None = Cookie(d
         "user": {k: updated[k] for k in ("id", "email", "username", "name", "role", "passportNo", "profileImageId")},
         "updated": True,
     }
+
+
+class ChatRequest(BaseModel):
+    messages: list[dict]  # [{role: "user"|"assistant", content: "..."}]
+    screeningContext: str | None = None
+
+
+@app.post("/api/chat")
+def chat(request: ChatRequest) -> dict:
+    """SENTRY Assist — the GLM-powered help chatbot (low-effort prototype)."""
+    if not chatbot.is_configured():
+        raise HTTPException(status_code=503, detail="Assistant is not configured (missing llmconfig.py).")
+    clean = [
+        {"role": m.get("role", "user"), "content": str(m.get("content", ""))}
+        for m in request.messages if m.get("content")
+    ][-6:]
+    if not clean:
+        raise HTTPException(status_code=400, detail="Message is required.")
+    try:
+        reply = chatbot.ask_assistant(clean, request.screeningContext)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+    return {"reply": reply}
 
 
 class WatchlistRequest(BaseModel):

@@ -9,7 +9,7 @@ REM 3. Run once:  ngrok config add-authtoken YOUR_TOKEN  (from the ngrok dashboa
 REM 4. Claim your free static domain in the ngrok dashboard (Universal Static Domain)
 REM 5. Paste it below between the = signs, e.g. set "NGROK_DOMAIN=sparksabhi-sentry.ngrok-free.app"
 
-set "NGROK_DOMAIN=YOUR-STATIC-DOMAIN.ngrok-free.app"
+set "NGROK_DOMAIN=granola-woven-yearning.ngrok-free.dev"
 
 if not exist "ngrok.exe" (
   echo ngrok.exe not found in this folder.

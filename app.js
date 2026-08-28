@@ -446,6 +446,79 @@ function toggleLanguage() {
 
 
 
+// ===== SENTRY ASSIST (AI help chatbot) =====
+
+let chatHistory = [];
+let chatGreeted = false;
+
+function toggleChat() {
+	const panel = document.getElementById('chat-panel');
+	const isOpen = panel.style.display !== 'none';
+	panel.style.display = isOpen ? 'none' : 'flex';
+	if (!isOpen) {
+		if (!chatGreeted) {
+			_chatBubble("Hi! I'm SENTRY Assist — ask me anything about document screening, risk scores, or the case you're viewing. 🛂", 'bot');
+			chatGreeted = true;
+		}
+		document.getElementById('chat-input').focus();
+	}
+}
+
+function _chatBubble(text, who) {
+	const box = document.getElementById('chat-messages');
+	const msg = document.createElement('div');
+	msg.className = `chat-msg ${who}`;
+	msg.textContent = text;
+	box.append(msg);
+	box.scrollTop = box.scrollHeight;
+	return msg;
+}
+
+function _chatTyping() {
+	const box = document.getElementById('chat-messages');
+	const typing = document.createElement('div');
+	typing.className = 'chat-typing';
+	typing.innerHTML = '<span></span><span></span><span></span>';
+	box.append(typing);
+	box.scrollTop = box.scrollHeight;
+	return typing;
+}
+
+function _chatScreeningContext() {
+	if (!currentResult || !currentResult.risk) return null;
+	const r = currentResult;
+	const reasons = (r.risk.reasons || []).slice(0, 4).join(' | ');
+	return `CURRENT SCREENING the user is viewing: ${r.id} — ${r.docType}, holder ${r.fields?.name || 'unknown'}. Risk ${r.risk.score}/100 (${r.risk.tier}). Key reasons: ${reasons}. Document image was securely deleted after analysis.`;
+}
+
+async function sendChat() {
+	const input = document.getElementById('chat-input');
+	const text = input.value.trim();
+	if (!text) return;
+	input.value = '';
+	_chatBubble(text, 'user');
+	chatHistory.push({ role: 'user', content: text });
+	const typing = _chatTyping();
+	try {
+		const response = await fetch('/api/chat', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				messages: chatHistory,
+				screeningContext: _chatScreeningContext(),
+			}),
+		});
+		const data = await response.json().catch(() => ({}));
+		if (!response.ok) throw new Error(data.detail || `Server responded ${response.status}`);
+		chatHistory.push({ role: 'assistant', content: data.reply });
+		_chatBubble(data.reply, 'bot');
+	} catch (error) {
+		_chatBubble(`Assistant unavailable: ${error.message}`, 'bot error');
+	} finally {
+		typing.remove();
+	}
+}
+
 function togglePassword(buttonId, inputId) {
 	const input = document.getElementById(inputId);
 	const button = document.getElementById(buttonId);

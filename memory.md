@@ -46,14 +46,27 @@
   2026-08-28, 44 files, secrets verified excluded). Teammate flow: clone →
   copy backend/dbconfig.example.py → dbconfig.py with the Neon string →
   setup.bat → start-sentry.bat.
-- **Hugging Face deployment (in progress):** Dockerfile (python:3.11-slim,
-  libgl1+libglib2.0-0 for OpenCV, port 7860, cp example→dbconfig.py),
-  .dockerignore, README HF front-matter (sdk: docker, app_port: 7860),
-  dbconfig.py + example now read DATABASE_URL env var first (fallback to the
-  hardcoded local string). Deployment commit 25fac95 NOT yet pushed.
-  HF Space steps for user: create Space (Docker SDK) → link GitHub repo →
-  add DATABASE_URL secret → wait ~20min build → public
-  sparksabhi-sentry.hf.space link. Cold start ~1-2min after idle.
+- **Hugging Face deployment — NOT VIABLE (free tier):** HF changed policy
+  (verified 2026-08-28 docs): Gradio/Docker Spaces now REQUIRE a paid PRO
+  plan ($9/mo); only Static Spaces are free (can't run Python). Dockerfile +
+  HF metadata committed anyway (25fac95) in case user goes Pro later —
+  steps: create Docker Space → add DATABASE_URL secret → ~20min build.
+- **Sharing route chosen: ngrok tunnel (free).** `share-online.bat` in repo
+  root (486e9a1): checks ngrok.exe + NGROK_DOMAIN var, starts backend if
+  down (health check), then `ngrok http --url=DOMAIN 8901`. User setup:
+  ngrok.com signup → download ngrok.exe to project folder (gitignored) →
+  `ngrok config add-authtoken TOKEN` → claim free static domain at
+  dashboard.ngrok.com/domains → paste into share-online.bat. Permanent link
+  like sparksabhi-sentry.ngrok-free.app; needs laptop on; first visit
+  clicks ngrok interstitial "Visit Site". README has the teammate-facing
+  instructions. Commits NOT yet pushed to GitHub (user must `git push`).
+- **LIVE LINK (2026-08-28): https://granola-woven-yearning.ngrok-free.dev**
+  Tunnel verified end-to-end (health check 200 through public URL). ngrok
+  authtoken saved (user's first paste had 2 extra trailing chars — second
+  paste worked). Domain: granola-woven-yearning.ngrok-free.dev (ngrok's
+  auto-generated free static domain). Tunnel runs while laptop on; restart
+  via share-online.bat. All 3 commits PUSHED to GitHub (origin/master at
+  486e9a1 — teammates get README + sharing instructions on clone).
 
 ### How to run the backend (verified working)
 ```
